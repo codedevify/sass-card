@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cart – Thank Ewe Very Much</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://js.stripe.com/v3/"></script>
+  <style>
+    body{background:#f8f9fa;}
+    .cart-item{border-bottom:1px solid #ddd;padding:15px 0;display:flex;justify-content:space-between;align-items:center;}
+    .total{font-size:1.5rem;font-weight:bold;color:#e91e63;}
+    #card-element { background: white; padding: 12px; border: 1px solid #ddd; border-radius: 5px; }
+    #card-errors { color: red; }
+    .payment-section { display: none; }
+    .payment-section.active { display: block; }
+  </style>
+</head>
+<body>
+<div class="container py-5">
+  <h1 class="mb-4">Your Cart</h1>
+  <div id="cart-items"></div>
+
+  <form id="checkout-form" class="mt-5 border p-4 rounded bg-white">
+    <h3 class="mb-3">Customer Information</h3>
+    <div class="mb-3"><input type="text" id="name" class="form-control" placeholder="Full Name" required></div>
+    <div class="mb-3"><input type="email" id="email" class="form-control" placeholder="Email" required></div>
+
+    <h3 class="mb-3">Payment Method</h3>
+    <div class="btn-group mb-3" role="group">
+      <input type="radio" class="btn-check" name="payment" id="stripe" checked>
+      <label class="btn btn-outline-primary" for="stripe">Card</label>
+      <input type="radio" class="btn-check" name="payment" id="paypal">
+      <label class="btn btn-outline-primary" for="paypal">PayPal</label>
+    </div>
+
+    <div id="stripe-payment" class="payment-section active">
+      <div id="card-element" class="mb-3"></div>
+      <div id="card-errors" role="alert" class="mb-3"></div>
+    </div>
+    <div id="paypal-payment" class="payment-section">
+      <div id="paypal-button-container" class="mb-3"></div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center">
+      <p class="total">Total: $<span id="total">0.00</span></p>
+      <button type="submit" class="btn btn-success btn-lg">Pay Now</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  let stripe, elements, card;
+  let paypalClientId = '';
+
+  async function loadCart() {
+    const res = await fetch('/api/cart');
+    const items = await res.json();
+    const container = document.getElementById('cart-items');
+    let total = 0;
+
+    if (!items.length) {
+      container.innerHTML = '<p class="text-muted">Your cart is empty.</p>';
+      document.getElementById('total').textContent = '0.00';
+      return;
+    }
+
+    container.innerHTML = items.map(it => {
+      const sub = it.product.price * it.quantity;
+      total += sub;
+      return `<div class="cart-item"><div><h5>${it.product.name}</h5><p>$${it.product.price.toFixed(2)} × ${it.quantity}</p></div><div>$${sub.toFixed(2)}</div></div>`;
+    }).join('');
+
+    document.getElementById('total').textContent = total.toFixed(2);
+    initPayment(total);
+  }
+
+  async function initPayment(total) {
+    // Stripe
+    const stripeRes = await fetch('/api/stripe/config');
+    const stripeData = await stripeRes.json();
+    if (stripeData.publishableKey) {
+      stripe = Stripe(stripeData.publishableKey);
+      elements = stripe.elements();
+      card = elements.create('card');
+      card.mount('#card-element');
+      card.on('change', (e) => {
+        document.getElementById('card-errors').textContent = e.error ? e.error.message : '';
+      });
+    }
+
+    // PayPal
+    const paypalRes = await fetch('/api/paypal/config');
+    const paypalData = await paypalRes.json();
+    if (paypalData.clientId) {
+      paypalClientId = paypalData.clientId;
+      const script = document.createElement('script');
+      script.src = `https://www.paypal.com/sdk/js?client-id=${paypalClientId}&currency=USD`;
+      script.onload = () => renderPayPal(total);
+      document.head.appendChild(script);
+    }
+  }
+
+  function renderPayPal(total) {
+    if (!paypalClientId) return;
+    paypal.Buttons({
+      createOrder: () => fetch('/api/paypal/create-order', { method: 'POST', body: JSON.stringify({ total }), headers: { 'Content-Type': 'application/json' } }).then(r => r.json()).then(o => o.id),
+      onApprove: (data) => fetch('/api/paypal/capture-order', { method: 'POST', body: JSON.stringify({ orderID: data.orderID }), headers: { 'Content-Type': 'application/json' } }).then(r => r.json()).then(() => finalize('paypal', '', data.orderID))
+    }).render('#paypal-button-container');
+  }
+
+  document.querySelectorAll('[name="payment"]').forEach(r => {
+    r.addEventListener('change', () => {
+      document.getElementById('stripe-payment').classList.toggle('active', r.id === 'stripe');
+      document.getElementById('paypal-payment').classList.toggle('active', r.id === 'paypal');
+    });
+  });
+
+  document.getElementById('checkout-form').onsubmit = async e => {
+    e.preventDefault();
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const method = document.querySelector('[name="payment"]:checked').id;
+    const total = parseFloat(document.getElementById('total').textContent);
+
+    if (!name || !email) return alert('Fill name and email');
+
+    if (method === 'stripe') {
+      const res = await fetch('/api/stripe/create-intent', { method: 'POST', body: JSON.stringify({ total }), headers: { 'Content-Type': 'application/json' } });
+      const { clientSecret } = await res.json();
+      const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, { payment_method: { card } });
+      if (error) return document.getElementById('card-errors').textContent = error.message;
+      finalize('stripe', paymentIntent.id);
+    }
+  };
+
+  async function finalize(method, paymentIntentId = '', paypalOrderId = '') {
+    const name = document.getElementById('name').value;
+    const email = document.getElementById('email').value;
+
+    const res = await fetch('/api/finalize-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, paymentMethod: method, paymentIntentId, paypalOrderId })
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert('Payment successful! Order confirmed.');
+      window.location.href = '/';
+    } else {
+      alert('Error: ' + (data.error || 'unknown'));
+    }
+  }
+
+  loadCart();
+</script>
+</body>
+</html>

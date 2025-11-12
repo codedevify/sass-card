@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Thank Ewe Very Much</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body{font-family:'Comic Sans MS',cursive;background:linear-gradient(135deg,#f5f7fa 0%,#c3cfe2 100%);}
+    .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;padding:20px;}
+    .card-item{background:#fff;border-radius:15px;padding:20px;text-align:center;box-shadow:0 4px 15px rgba(0,0,0,.1);transition:.3s;}
+    .card-item:hover{transform:translateY(-10px);box-shadow:0 8px 25px rgba(0,0,0,.2);}
+    .price{font-size:1.5rem;color:#e91e63;font-weight:bold;}
+    .icon{font-size:3rem;}
+    .btn-add{background:#ff6b6b;color:#fff;border:none;padding:10px 20px;border-radius:25px;}
+    .btn-add:hover{background:#ff5252;}
+    .navbar{background:#ff6b6b !important;}
+    .cart-badge{background:#fff;color:#ff6b6b;border-radius:50%;padding:2px 6px;font-size:.7rem;}
+  </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark">
+  <div class="container">
+    <a class="navbar-brand" href="/">Thank Ewe Very Much</a>
+    <div class="collapse navbar-collapse">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="/cart.html">Cart <span id="cart-count" class="badge cart-badge">0</span></a></li>
+        <li class="nav-item"><a class="nav-link" href="/admin.html">Admin</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="text-center py-5 bg-light">
+  <h1 class="display-4">Llama Cards for Every Occasion</h1>
+  <p class="lead">Send love, laughs, and llama joy!</p>
+</div>
+
+<div class="container">
+  <div class="card-grid" id="products-grid"></div>
+</div>
+
+<script>
+  async function updateCartCount() {
+    const res = await fetch('/api/cart');
+    const items = await res.json();
+    const total = items.reduce((s,i)=>s+i.quantity,0);
+    document.getElementById('cart-count').textContent = total;
+  }
+
+  async function loadProducts() {
+    const res = await fetch('/api/products');
+    const products = await res.json();
+    document.getElementById('products-grid').innerHTML = products.map(p=>`
+      <div class="card-item">
+        <div class="icon">${p.icon}</div>
+        <img src="${p.image}" alt="${p.name}" style="width:100%;height:180px;object-fit:cover;border-radius:10px;margin:10px 0;">
+        <h5>${p.name}</h5>
+        <p>${p.desc}</p>
+        <p class="price">$${p.price}</p>
+        <button class="btn-add" onclick="addToCart('${p._id}')">Add to Cart</button>
+      </div>
+    `).join('');
+  }
+
+  async function addToCart(id) {
+    await fetch('/api/cart/add',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({productId:id})
+    });
+    updateCartCount();
+  }
+
+  loadProducts();
+  updateCartCount();
+</script>
+</body>
+</html>
