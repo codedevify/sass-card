@@ -34,10 +34,20 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// ---------- MongoDB ----------
-mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('MongoDB connected'))
-  .catch(err => console.error('MongoDB error:', err));
+// ---------- MongoDB (FIXED) ----------
+mongoose.connect(process.env.MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 30000,   // Wait 30s for server
+  socketTimeoutMS: 45000,            // Close socket after 45s
+  bufferMaxEntries: 0,               // Disable buffering
+  bufferCommands: false              // Don't buffer commands
+})
+.then(() => console.log('MongoDB connected'))
+.catch(err => {
+  console.error('MongoDB connection error:', err.message);
+  process.exit(1); // Stop server if DB fails
+});
 
 // ---------- Schemas ----------
 const productSchema = new mongoose.Schema({
@@ -81,33 +91,44 @@ transporter.verify((error) => {
   else console.log('Email ready');
 });
 
-// ---------- Seed Products ----------
+// ---------- Seed Products (Wait for DB) ----------
 const seedProducts = async () => {
-  if (await Product.countDocuments()) return;
-  const products = [
-    { name: "Llama Birthday Bash", desc: "Colorful llama birthday card.", type: "Birthday", icon: "Llama", price: 4.99, image: "https://via.placeholder.com/400x300?text=Llama+Birthday+Bash", message: "Happy Baaa-thday!" },
-    { name: "Thank Ewe Note", desc: "Woolly gratitude card.", type: "Thank You", icon: "Llama", price: 3.49, image: "https://via.placeholder.com/400x300?text=Thank+Ewe+Note", message: "Thank ewe!" },
-    { name: "Llama Anniversary", desc: "Romantic llama card.", type: "Special Occasion", icon: "Llama", price: 5.99, image: "https://via.placeholder.com/400x300?text=Llama+Anniversary", message: "Llama-zing love!" },
-    { name: "Get Well Llama", desc: "Cheerful recovery card.", type: "Special Occasion", icon: "Llama", price: 3.99, image: "https://via.placeholder.com/400x300?text=Get+Well+Llama", message: "Woolly recovery!" },
-    { name: "Llama Congratulations", desc: "Festive celebration card.", type: "Special Occasion", icon: "Llama", price: 4.49, image: "https://via.placeholder.com/400x300?text=Llama+Congratulations", message: "Llama-tastic!" },
-    { name: "Llama Sympathy", desc: "Gentle sympathy card.", type: "Special Occasion", icon: "Llama", price: 3.99, image: "https://via.placeholder.com/400x300?text=Llama+Sympathy", message: "Woolly hugs." },
-    { name: "Llama Holiday Cheer", desc: "Festive holiday card.", type: "Special Occasion", icon: "Llama", price: 4.29, image: "https://via.placeholder.com/400x300?text=Llama+Holiday+Cheer", message: "Woolly wishes!" },
-    { name: "Baby Llama Bliss", desc: "New baby congratulations.", type: "Special Occasion", icon: "Llama", price: 4.79, image: "https://via.placeholder.com/400x300?text=Baby+Llama+Bliss", message: "Little llama!" },
-    { name: "Llama Wedding Wishes", desc: "Elegant wedding card.", type: "Special Occasion", icon: "Llama", price: 5.49, image: "https://via.placeholder.com/400x300?text=Llama+Wedding+Wishes", message: "Forever llama-zing!" },
-    { name: "Llama Graduation", desc: "Academic success card.", type: "Special Occasion", icon: "Llama", price: 4.69, image: "https://via.placeholder.com/400x300?text=Llama+Graduation", message: "Woolly brilliant!" },
-    { name: "Llama Friendship", desc: "Heartfelt friendship card.", type: "Special Occasion", icon: "Llama", price: 3.89, image: "https://via.placeholder.com/400x300?text=Llama+Friendship", message: "Shear-iously awesome!" },
-    { name: "Llama New Home", desc: "New home welcome.", type: "Special Occasion", icon: "Llama", price: 4.39, image: "https://via.placeholder.com/400x300?text=Llama+New+Home", message: "Woolly new home!" },
-    { name: "Llama Birthday Fiesta", desc: "Vibrant birthday party.", type: "Birthday", icon: "Llama", price: 4.89, image: "https://via.placeholder.com/400x300?text=Llama+Birthday+Fiesta", message: "Llama-tastic bash!" },
-    { name: "Thank Ewe Kindness", desc: "Gratitude for kindness.", type: "Thank You", icon: "Llama", price: 3.59, image: "https://via.placeholder.com/400x300?text=Thank+Ewe+Kindness", message: "Shear perfection!" },
-    { name: "Llama Retirement", desc: "Retirement celebration.", type: "Special Occasion", icon: "Llama", price: 4.99, image: "https://via.placeholder.com/400x300?text=Llama+Retirement", message: "Woolly retirement!" },
-    { name: "Llama Baby Shower", desc: "Expecting parents card.", type: "Special Occasion", icon: "Llama", price: 4.59, image: "https://via.placeholder.com/400x300?text=Llama+Baby+Shower", message: "Little llama coming!" },
-    { name: "Llama Encouragement", desc: "Uplifting encouragement.", type: "Special Occasion", icon: "Llama", price: 3.79, image: "https://via.placeholder.com/400x300?text=Llama+Encouragement", message: "Shine, woolly star!" },
-    { name: "Llama Thank You Party", desc: "Festive thank you.", type: "Thank You", icon: "Llama", price: 3.99, image: "https://via.placeholder.com/400x300?text=Llama+Thank+You+Party", message: "Un-baaa-lievable party!" }
-  ];
-  await Product.insertMany(products);
-  console.log('18 products seeded');
+  try {
+    const count = await Product.countDocuments();
+    if (count > 0) return;
+
+    const products = [
+      { name: "Llama Birthday Bash", desc: "Colorful llama birthday card.", type: "Birthday", icon: "Llama", price: 4.99, image: "https://via.placeholder.com/400x300?text=Llama+Birthday+Bash", message: "Happy Baaa-thday!" },
+      { name: "Thank Ewe Note", desc: "Woolly gratitude card.", type: "Thank You", icon: "Llama", price: 3.49, image: "https://via.placeholder.com/400x300?text=Thank+Ewe+Note", message: "Thank ewe!" },
+      { name: "Llama Anniversary", desc: "Romantic llama card.", type: "Special Occasion", icon: "Llama", price: 5.99, image: "https://via.placeholder.com/400x300?text=Llama+Anniversary", message: "Llama-zing love!" },
+      { name: "Get Well Llama", desc: "Cheerful recovery card.", type: "Special Occasion", icon: "Llama", price: 3.99, image: "https://via.placeholder.com/400x300?text=Get+Well+Llama", message: "Woolly recovery!" },
+      { name: "Llama Congratulations", desc: "Festive celebration card.", type: "Special Occasion", icon: "Llama", price: 4.49, image: "https://via.placeholder.com/400x300?text=Llama+Congratulations", message: "Llama-tastic!" },
+      { name: "Llama Sympathy", desc: "Gentle sympathy card.", type: "Special Occasion", icon: "Llama", price: 3.99, image: "https://via.placeholder.com/400x300?text=Llama+Sympathy", message: "Woolly hugs." },
+      { name: "Llama Holiday Cheer", desc: "Festive holiday card.", type: "Special Occasion", icon: "Llama", price: 4.29, image: "https://via.placeholder.com/400x300?text=Llama+Holiday+Cheer", message: "Woolly wishes!" },
+      { name: "Baby Llama Bliss", desc: "New baby congratulations.", type: "Special Occasion", icon: "Llama", price: 4.79, image: "https://via.placeholder.com/400x300?text=Baby+Llama+Bliss", message: "Little llama!" },
+      { name: "Llama Wedding Wishes", desc: "Elegant wedding card.", type: "Special Occasion", icon: "Llama", price: 5.49, image: "https://via.placeholder.com/400x300?text=Llama+Wedding+Wishes", message: "Forever llama-zing!" },
+      { name: "Llama Graduation", desc: "Academic success card.", type: "Special Occasion", icon: "Llama", price: 4.69, image: "https://via.placeholder.com/400x300?text=Llama+Graduation", message: "Woolly brilliant!" },
+      { name: "Llama Friendship", desc: "Heartfelt friendship card.", type: "Special Occasion", icon: "Llama", price: 3.89, image: "https://via.placeholder.com/400x300?text=Llama+Friendship", message: "Shear-iously awesome!" },
+      { name: "Llama New Home", desc: "New home welcome.", type: "Special Occasion", icon: "Llama", price: 4.39, image: "https://via.placeholder.com/400x300?text=Llama+New+Home", message: "Woolly new home!" },
+      { name: "Llama Birthday Fiesta", desc: "Vibrant birthday party.", type: "Birthday", icon: "Llama", price: 4.89, image: "https://via.placeholder.com/400x300?text=Llama+Birthday+Fiesta", message: "Llama-tastic bash!" },
+      { name: "Thank Ewe Kindness", desc: "Gratitude for kindness.", type: "Thank You", icon: "Llama", price: 3.59, image: "https://via.placeholder.com/400x300?text=Thank+Ewe+Kindness", message: "Shear perfection!" },
+      { name: "Llama Retirement", desc: "Retirement celebration.", type: "Special Occasion", icon: "Llama", price: 4.99, image: "https://via.placeholder.com/400x300?text=Llama+Retirement", message: "Woolly retirement!" },
+      { name: "Llama Baby Shower", desc: "Expecting parents card.", type: "Special Occasion", icon: "Llama", price: 4.59, image: "https://via.placeholder.com/400x300?text=Llama+Baby+Shower", message: "Little llama coming!" },
+      { name: "Llama Encouragement", desc: "Uplifting encouragement.", type: "Special Occasion", icon: "Llama", price: 3.79, image: "https://via.placeholder.com/400x300?text=Llama+Encouragement", message: "Shine, woolly star!" },
+      { name: "Llama Thank You Party", desc: "Festive thank you.", type: "Thank You", icon: "Llama", price: 3.99, image: "https://via.placeholder.com/400x300?text=Llama+Thank+You+Party", message: "Un-baaa-lievable party!" }
+    ];
+    await Product.insertMany(products);
+    console.log('18 products seeded');
+  } catch (err) {
+    console.error('Seeding failed:', err.message);
+  }
 };
-seedProducts();
+
+// Wait for DB connection before seeding
+mongoose.connection.once('open', () => {
+  console.log('Database connected. Seeding...');
+  seedProducts();
+});
 
 // ---------- Routes ----------
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
@@ -116,8 +137,12 @@ app.get('/admin.html', (req, res) => res.sendFile(path.join(__dirname, 'public',
 
 // Products
 app.get('/api/products', async (req, res) => {
-  const products = await Product.find();
-  res.json(products);
+  try {
+    const products = await Product.find();
+    res.json(products);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to load products' });
+  }
 });
 
 // Cart
@@ -132,13 +157,17 @@ app.post('/api/cart/add', (req, res) => {
 
 app.get('/api/cart', async (req, res) => {
   if (!req.session.cart) return res.json([]);
-  const populated = await Promise.all(
-    req.session.cart.map(async item => {
-      const product = await Product.findById(item.productId);
-      return product ? { ...item, product } : null;
-    })
-  );
-  res.json(populated.filter(Boolean));
+  try {
+    const populated = await Promise.all(
+      req.session.cart.map(async item => {
+        const product = await Product.findById(item.productId);
+        return product ? { ...item, product } : null;
+      })
+    );
+    res.json(populated.filter(Boolean));
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to load cart' });
+  }
 });
 
 // ---------- PAYPAL ----------
