@@ -34,19 +34,17 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// ---------- MongoDB (FIXED) ----------
+// ---------- MongoDB (FIXED: Removed deprecated options) ----------
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 30000,   // Wait 30s for server
-  socketTimeoutMS: 45000,            // Close socket after 45s
-  bufferMaxEntries: 0,               // Disable buffering
-  bufferCommands: false              // Don't buffer commands
+  serverSelectionTimeoutMS: 30000,
+  socketTimeoutMS: 45000,
 })
 .then(() => console.log('MongoDB connected'))
 .catch(err => {
   console.error('MongoDB connection error:', err.message);
-  process.exit(1); // Stop server if DB fails
+  process.exit(1);
 });
 
 // ---------- Schemas ----------
@@ -91,7 +89,7 @@ transporter.verify((error) => {
   else console.log('Email ready');
 });
 
-// ---------- Seed Products (Wait for DB) ----------
+// ---------- Seed Products ----------
 const seedProducts = async () => {
   try {
     const count = await Product.countDocuments();
@@ -124,9 +122,9 @@ const seedProducts = async () => {
   }
 };
 
-// Wait for DB connection before seeding
+// Seed after connection
 mongoose.connection.once('open', () => {
-  console.log('Database connected. Seeding...');
+  console.log('Database connected. Seeding products...');
   seedProducts();
 });
 
