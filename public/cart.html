@@ -5,145 +5,48 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Cart – Thank Ewe Very Much</title>
 
-  <!-- Tailwind & Fonts (like main page) -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-
   <script src="https://js.stripe.com/v3/"></script>
 
   <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      background: #fff8f1;
-      margin: 0;
-      overflow-x: hidden;
-    }
-
-    /* Navbar (same as main page) */
-    .navbar {
-      background: #ff6f61;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-      padding: 1rem 0;
-    }
-    .navbar-brand {
-      font-weight: 700;
-      font-size: 1.5rem;
-      color: white !important;
-    }
-    .nav-link {
-      color: white !important;
-      font-weight: 600;
-      font-size: 1.1rem;
-      transition: color 0.3s ease;
-    }
-    .nav-link:hover {
-      color: #ffd166 !important;
-    }
-    .cart-badge {
-      background: white;
-      color: #ff6f61;
-      border-radius: 50%;
-      padding: 2px 6px;
-      font-size: 0.7rem;
-      margin-left: 5px;
-    }
-
-    /* Cart Page Styling */
-    .cart-container {
-      max-width: 800px;
-      margin: 3rem auto;
-      background: white;
-      border-radius: 15px;
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
-      padding: 2rem;
-    }
-
+    body { font-family: 'Poppins', sans-serif; background: #fff8f1; margin: 0; overflow-x: hidden; }
+    .navbar { background: #ff6f61; box-shadow: 0 4px 6px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 1000; padding: 1rem 0; }
+    .navbar-brand { font-weight: 700; font-size: 1.5rem; color: white !important; }
+    .nav-link { color: white !important; font-weight: 600; font-size: 1.1rem; transition: color 0.3s ease; }
+    .nav-link:hover { color: #ffd166 !important; }
+    .cart-container { max-width: 900px; margin: 3rem auto; background: white; border-radius: 15px; box-shadow: 0 6px 12px rgba(0,0,0,0.08); padding: 2rem; }
+    .cart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
     .cart-item {
-      border-bottom: 1px solid #eee;
-      padding: 1rem 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      border-bottom: 1px solid #eee; padding: 1rem 0; display: flex; justify-content: space-between; align-items: center;
+      position: relative;
     }
-
-    .cart-item h5 {
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: #333;
+    .cart-item:last-child { border-bottom: none; }
+    .item-info { flex: 1; }
+    .item-info h5 { font-size: 1.2rem; font-weight: 600; color: #333; margin: 0; }
+    .item-info p { color: #666; font-size: 0.95rem; margin: 4px 0 0; }
+    .item-price { font-weight: 700; color: #ff6f61; font-size: 1.2rem; }
+    .remove-btn {
+      background: #ff4444; color: white; border: none; border-radius: 50%; width: 32px; height: 32px;
+      font-size: 1.2rem; cursor: pointer; transition: all 0.2s; margin-left: 12px;
     }
-
-    .cart-item p {
-      color: #666;
-      font-size: 0.95rem;
-    }
-
-    .total {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: #ff6f61;
-    }
-
-    #card-element {
-      background: white;
-      padding: 12px;
-      border: 1px solid #ddd;
-      border-radius: 10px;
-    }
-
-    #card-errors {
-      color: red;
-      margin-top: 10px;
-    }
-
-    .payment-section {
-      display: none;
-    }
-    .payment-section.active {
-      display: block;
-    }
-
-    .btn-primary {
-      background-color: #ff6f61;
-      color: white;
-      border: none;
-      border-radius: 25px;
-      font-weight: 600;
-      padding: 10px 25px;
-      transition: all 0.3s ease;
-    }
-
-    .btn-primary:hover {
-      background-color: #e55a50;
-      transform: scale(1.05);
-    }
-
-    footer {
-      background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
-      color: white;
-      padding: 3rem 1rem;
-      text-align: center;
-      margin-top: 4rem;
-    }
-
-    footer p {
-      font-size: 1rem;
-      opacity: 0.9;
-    }
-
-    footer a {
-      color: #ffd166;
-      text-decoration: none;
-    }
+    .remove-btn:hover { background: #cc0000; transform: scale(1.1); }
+    .total { font-size: 1.8rem; font-weight: 700; color: #ff6f61; }
+    #card-element { background: white; padding: 12px; border: 1px solid #ddd; border-radius: 10px; }
+    #card-errors { color: red; margin-top: 10px; min-height: 20px; }
+    .payment-section { display: none; }
+    .payment-section.active { display: block; }
+    .btn-primary { background-color: #ff6f61; color: white; border: none; border-radius: 25px; font-weight: 600; padding: 12px 32px; transition: all 0.3s ease; }
+    .btn-primary:hover { background-color: #e55a50; transform: scale(1.05); }
+    .btn-danger { background: #ff4444; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem; }
+    .btn-danger:hover { background: #cc0000; }
+    footer { background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%); color: white; padding: 3rem 1rem; text-align: center; margin-top: 4rem; }
   </style>
 </head>
 <body>
 
-<!-- Navbar -->
 <nav class="navbar">
-  <div class="container flex items-center justify-between px-4">
+  <div class="container flex items-center justify-between px-4 mx-auto">
     <a class="navbar-brand" href="/">Thank Ewe Very Much</a>
     <ul class="flex space-x-6 items-center">
       <li><a class="nav-link" href="/">Home</a></li>
@@ -153,81 +56,113 @@
   </div>
 </nav>
 
-<!-- Cart Content -->
 <div class="cart-container">
-  <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Your Cart</h1>
-  <div id="cart-items"></div>
+  <div class="cart-header">
+    <h1 class="text-3xl font-bold text-gray-800">Your Cart</h1>
+    <button id="clear-all" class="btn-danger" style="display:none;">Clear All</button>
+  </div>
+
+  <div id="cart-items">Loading cart...</div>
 
   <form id="checkout-form" class="mt-8 border-t pt-6">
     <h3 class="text-2xl font-semibold mb-4 text-gray-800">Customer Information</h3>
-    <div class="mb-4"><input type="text" id="name" class="form-control w-full p-3 border rounded-lg" placeholder="Full Name" required></div>
-    <div class="mb-4"><input type="email" id="email" class="form-control w-full p-3 border rounded-lg" placeholder="Email" required></div>
+    <div class="mb-4"><input type="text" id="name" class="w-full p-3 border rounded-lg" placeholder="Full Name" required></div>
+    <div class="mb-4"><input type="email" id="email" class="w-full p-3 border rounded-lg" placeholder="Email" required></div>
 
     <h3 class="text-2xl font-semibold mb-4 text-gray-800">Payment Method</h3>
-    <div class="flex space-x-4 mb-6">
-      <label class="flex items-center space-x-2 cursor-pointer">
-        <input type="radio" name="payment" id="stripe" checked>
-        <span>Card</span>
+    <div class="flex space-x-6 mb-6">
+      <label class="flex items-center space-x-2 cursor-pointer text-lg">
+        <input type="radio" name="payment" value="stripe" checked class="w-5 h-5">
+        <span>Card (Stripe)</span>
       </label>
-      <label class="flex items-center space-x-2 cursor-pointer">
-        <input type="radio" name="payment" id="paypal">
+      <label class="flex items-center space-x-2 cursor-pointer text-lg">
+        <input type="radio" name="payment" value="paypal" class="w-5 h-5">
         <span>PayPal</span>
       </label>
     </div>
 
     <div id="stripe-payment" class="payment-section active">
-      <div id="card-element" class="mb-3"></div>
-      <div id="card-errors" role="alert" class="mb-3"></div>
+      <div id="card-element"></div>
+      <div id="card-errors" role="alert"></div>
     </div>
     <div id="paypal-payment" class="payment-section">
-      <div id="paypal-button-container" class="mb-3"></div>
+      <div id="paypal-button-container"></div>
     </div>
 
-    <div class="flex justify-between items-center mt-6">
+    <div class="flex justify-between items-center mt-8">
       <p class="total">Total: $<span id="total">0.00</span></p>
       <button type="submit" class="btn-primary text-lg">Pay Now</button>
     </div>
   </form>
 </div>
 
-<!-- Footer -->
 <footer>
   <p>© 2025 Thank Ewe Very Much. All rights reserved.</p>
   <p class="mt-2">Real Cards for Real People! #ThankEweVeryMuch</p>
-  <p class="mt-2">Follow us on <a href="https://x.com">#RealCardsRealPeople</a></p>
 </footer>
 
 <script>
-  let stripe, elements, card;
+  let stripe, card;
   let paypalClientId = '';
+  let totalAmount = 0;
+
+  // NEW: Remove single item
+  async function removeItem(productId) {
+    if (!confirm('Remove this item from cart?')) return;
+    await fetch('/api/cart/remove', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productId })
+    });
+    loadCart();
+  }
+
+  // NEW: Clear entire cart
+  async function clearAll() {
+    if (!confirm('Remove all items from cart?')) return;
+    await fetch('/api/cart/clear', { method: 'POST' });
+    loadCart();
+  }
 
   async function loadCart() {
-    const res = await fetch('/api/cart');
-    const items = await res.json();
-    const container = document.getElementById('cart-items');
-    let total = 0;
+    try {
+      const res = await fetch('/api/cart');
+      const items = await res.json();
+      const container = document.getElementById('cart-items');
+      totalAmount = 0;
 
-    if (!items.length) {
-      container.innerHTML = '<p class="text-gray-500 text-center">Your cart is empty.</p>';
-      document.getElementById('total').textContent = '0.00';
-      return;
+      document.getElementById('clear-all').style.display = items.length ? 'block' : 'none';
+
+      if (!items.length) {
+        container.innerHTML = '<p class="text-gray-500 text-center py-12 text-xl">Your cart is empty. <a href="/" class="text-[#ff6f61] underline font-bold">Shop now!</a></p>';
+        document.getElementById('total').textContent = '0.00';
+        document.querySelector('button[type="submit"]').disabled = true;
+        return;
+      }
+
+      document.querySelector('button[type="submit"]').disabled = false;
+
+      container.innerHTML = items.map(it => {
+        const sub = it.product.price * it.quantity;
+        totalAmount += sub;
+        return `
+          <div class="cart-item">
+            <div class="item-info">
+              <h5>${it.product.name}</h5>
+              <p>$${it.product.price.toFixed(2)} × ${it.quantity}</p>
+            </div>
+            <div class="flex items-center">
+              <div class="item-price">$${sub.toFixed(2)}</div>
+              <button class="remove-btn ml-4" onclick="removeItem('${it.product._id}')">×</button>
+            </div>
+          </div>`;
+      }).join('');
+
+      document.getElementById('total').textContent = totalAmount.toFixed(2);
+      initPayment(totalAmount);
+    } catch (err) {
+      document.getElementById('cart-items').innerHTML = '<p class="text-red-600 text-center">Failed to load cart.</p>';
     }
-
-    container.innerHTML = items.map(it => {
-      const sub = it.product.price * it.quantity;
-      total += sub;
-      return `
-        <div class="cart-item">
-          <div>
-            <h5>${it.product.name}</h5>
-            <p>$${it.product.price.toFixed(2)} × ${it.quantity}</p>
-          </div>
-          <div class="font-semibold text-gray-700">$${sub.toFixed(2)}</div>
-        </div>`;
-    }).join('');
-
-    document.getElementById('total').textContent = total.toFixed(2);
-    initPayment(total);
   }
 
   async function initPayment(total) {
@@ -235,11 +170,11 @@
     const stripeData = await stripeRes.json();
     if (stripeData.publishableKey) {
       stripe = Stripe(stripeData.publishableKey);
-      elements = stripe.elements();
-      card = elements.create('card');
+      const elements = stripe.elements();
+      card = elements.create('card', { style: { base: { fontSize: '16px', color: '#424770' } } });
       card.mount('#card-element');
-      card.on('change', (e) => {
-        document.getElementById('card-errors').textContent = e.error ? e.error.message : '';
+      card.on('change', ({ error }) => {
+        document.getElementById('card-errors').textContent = error ? error.message : '';
       });
     }
 
@@ -247,33 +182,39 @@
     const paypalData = await paypalRes.json();
     if (paypalData.clientId) {
       paypalClientId = paypalData.clientId;
-      const script = document.createElement('script');
-      script.src = `https://www.paypal.com/sdk/js?client-id=${paypalClientId}&currency=USD`;
-      script.onload = () => renderPayPal(total);
-      document.head.appendChild(script);
+      if (!document.querySelector('script[src*="paypal"]')) {
+        const script = document.createElement('script');
+        script.src = `https://www.paypal.com/sdk/js?client-id=${paypalClientId}&currency=USD`;
+        script.onload = () => renderPayPal(total);
+        document.head.appendChild(script);
+      } else {
+        renderPayPal(total);
+      }
     }
   }
 
   function renderPayPal(total) {
-    if (!paypalClientId) return;
+    if (!window.paypal || !paypalClientId) return;
+    document.getElementById('paypal-button-container').innerHTML = '';
     paypal.Buttons({
       createOrder: () => fetch('/api/paypal/create-order', {
         method: 'POST',
-        body: JSON.stringify({ total }),
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ total })
       }).then(r => r.json()).then(o => o.id),
       onApprove: (data) => fetch('/api/paypal/capture-order', {
         method: 'POST',
-        body: JSON.stringify({ orderID: data.orderID }),
-        headers: { 'Content-Type': 'application/json' }
-      }).then(r => r.json()).then(() => finalize('paypal', '', data.orderID))
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderID: data.orderID })
+      }).then(() => finalize('paypal', '', data.orderID)),
+      onError: () => alert('PayPal payment failed')
     }).render('#paypal-button-container');
   }
 
-  document.querySelectorAll('[name="payment"]').forEach(r => {
-    r.addEventListener('change', () => {
-      document.getElementById('stripe-payment').classList.toggle('active', r.id === 'stripe');
-      document.getElementById('paypal-payment').classList.toggle('active', r.id === 'paypal');
+  document.querySelectorAll('[name="payment"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      document.getElementById('stripe-payment').classList.toggle('active', radio.value === 'stripe');
+      document.getElementById('paypal-payment').classList.toggle('active', radio.value === 'paypal');
     });
   });
 
@@ -281,202 +222,52 @@
     e.preventDefault();
     const name = document.getElementById('name').value.trim();
     const email = document.getElementById('email').value.trim();
-    const method = document.querySelector('[name="payment"]:checked').id;
-    const total = parseFloat(document.getElementById('total').textContent);
+    const method = document.querySelector('[name="payment"]:checked').value;
 
-    if (!name || !email) return alert('Fill name and email');
+    if (!name || !email) return alert('Please fill name and email');
 
-    if (method === 'stripe') {
+    if (method === 'stripe' && stripe) {
       const res = await fetch('/api/stripe/create-intent', {
         method: 'POST',
-        body: JSON.stringify({ total }),
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ total: totalAmount })
       });
       const { clientSecret } = await res.json();
       const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, { payment_method: { card } });
-      if (error) return document.getElementById('card-errors').textContent = error.message;
-      finalize('stripe', paymentIntent.id);
+      if (error) {
+        document.getElementById('card-errors').textContent = error.message;
+      } else {
+        finalize('stripe', paymentIntent.id);
+      }
     }
   };
 
   async function finalize(method, paymentIntentId = '', paypalOrderId = '') {
-    const name = document.getElementById('name').value;
-    const email = document.getElementById('email').value;
-
     const res = await fetch('/api/finalize-order', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, paymentMethod: method, paymentIntentId, paypalOrderId })
+      body: JSON.stringify({
+        name: document.getElementById('name').value,
+        email: document.getElementById('email').value,
+        paymentMethod: method,
+        paymentIntentId,
+        paypalOrderId
+      })
     });
     const data = await res.json();
     if (data.success) {
-      alert('Payment successful! Order confirmed.');
+      alert('Payment successful! Thank you for your order');
       window.location.href = '/';
     } else {
-      alert('Error: ' + (data.error || 'unknown'));
+      alert('Payment failed: ' + (data.error || 'Please try again'));
     }
   }
 
-  loadCart();
-</script>
-</body>
-</html>
+  // Add missing endpoints to server.js if not there:
+  // POST /api/cart/remove → remove one item
+  // POST /api/cart/clear → empty cart
 
-<!--
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Cart – Thank Ewe Very Much</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <script src="https://js.stripe.com/v3/"></script>
-  <style>
-    body{background:#f8f9fa;}
-    .cart-item{border-bottom:1px solid #ddd;padding:15px 0;display:flex;justify-content:space-between;align-items:center;}
-    .total{font-size:1.5rem;font-weight:bold;color:#e91e63;}
-    #card-element { background: white; padding: 12px; border: 1px solid #ddd; border-radius: 5px; }
-    #card-errors { color: red; }
-    .payment-section { display: none; }
-    .payment-section.active { display: block; }
-  </style>
-</head>
-<body>
-<div class="container py-5">
-  <h1 class="mb-4">Your Cart</h1>
-  <div id="cart-items"></div>
-
-  <form id="checkout-form" class="mt-5 border p-4 rounded bg-white">
-    <h3 class="mb-3">Customer Information</h3>
-    <div class="mb-3"><input type="text" id="name" class="form-control" placeholder="Full Name" required></div>
-    <div class="mb-3"><input type="email" id="email" class="form-control" placeholder="Email" required></div>
-
-    <h3 class="mb-3">Payment Method</h3>
-    <div class="btn-group mb-3" role="group">
-      <input type="radio" class="btn-check" name="payment" id="stripe" checked>
-      <label class="btn btn-outline-primary" for="stripe">Card</label>
-      <input type="radio" class="btn-check" name="payment" id="paypal">
-      <label class="btn btn-outline-primary" for="paypal">PayPal</label>
-    </div>
-
-    <div id="stripe-payment" class="payment-section active">
-      <div id="card-element" class="mb-3"></div>
-      <div id="card-errors" role="alert" class="mb-3"></div>
-    </div>
-    <div id="paypal-payment" class="payment-section">
-      <div id="paypal-button-container" class="mb-3"></div>
-    </div>
-
-    <div class="d-flex justify-content-between align-items-center">
-      <p class="total">Total: $<span id="total">0.00</span></p>
-      <button type="submit" class="btn btn-success btn-lg">Pay Now</button>
-    </div>
-  </form>
-</div>
-
-<script>
-  let stripe, elements, card;
-  let paypalClientId = '';
-
-  async function loadCart() {
-    const res = await fetch('/api/cart');
-    const items = await res.json();
-    const container = document.getElementById('cart-items');
-    let total = 0;
-
-    if (!items.length) {
-      container.innerHTML = '<p class="text-muted">Your cart is empty.</p>';
-      document.getElementById('total').textContent = '0.00';
-      return;
-    }
-
-    container.innerHTML = items.map(it => {
-      const sub = it.product.price * it.quantity;
-      total += sub;
-      return `<div class="cart-item"><div><h5>${it.product.name}</h5><p>$${it.product.price.toFixed(2)} × ${it.quantity}</p></div><div>$${sub.toFixed(2)}</div></div>`;
-    }).join('');
-
-    document.getElementById('total').textContent = total.toFixed(2);
-    initPayment(total);
-  }
-
-  async function initPayment(total) {
-    // Stripe
-    const stripeRes = await fetch('/api/stripe/config');
-    const stripeData = await stripeRes.json();
-    if (stripeData.publishableKey) {
-      stripe = Stripe(stripeData.publishableKey);
-      elements = stripe.elements();
-      card = elements.create('card');
-      card.mount('#card-element');
-      card.on('change', (e) => {
-        document.getElementById('card-errors').textContent = e.error ? e.error.message : '';
-      });
-    }
-
-    // PayPal
-    const paypalRes = await fetch('/api/paypal/config');
-    const paypalData = await paypalRes.json();
-    if (paypalData.clientId) {
-      paypalClientId = paypalData.clientId;
-      const script = document.createElement('script');
-      script.src = `https://www.paypal.com/sdk/js?client-id=${paypalClientId}&currency=USD`;
-      script.onload = () => renderPayPal(total);
-      document.head.appendChild(script);
-    }
-  }
-
-  function renderPayPal(total) {
-    if (!paypalClientId) return;
-    paypal.Buttons({
-      createOrder: () => fetch('/api/paypal/create-order', { method: 'POST', body: JSON.stringify({ total }), headers: { 'Content-Type': 'application/json' } }).then(r => r.json()).then(o => o.id),
-      onApprove: (data) => fetch('/api/paypal/capture-order', { method: 'POST', body: JSON.stringify({ orderID: data.orderID }), headers: { 'Content-Type': 'application/json' } }).then(r => r.json()).then(() => finalize('paypal', '', data.orderID))
-    }).render('#paypal-button-container');
-  }
-
-  document.querySelectorAll('[name="payment"]').forEach(r => {
-    r.addEventListener('change', () => {
-      document.getElementById('stripe-payment').classList.toggle('active', r.id === 'stripe');
-      document.getElementById('paypal-payment').classList.toggle('active', r.id === 'paypal');
-    });
-  });
-
-  document.getElementById('checkout-form').onsubmit = async e => {
-    e.preventDefault();
-    const name = document.getElementById('name').value.trim();
-    const email = document.getElementById('email').value.trim();
-    const method = document.querySelector('[name="payment"]:checked').id;
-    const total = parseFloat(document.getElementById('total').textContent);
-
-    if (!name || !email) return alert('Fill name and email');
-
-    if (method === 'stripe') {
-      const res = await fetch('/api/stripe/create-intent', { method: 'POST', body: JSON.stringify({ total }), headers: { 'Content-Type': 'application/json' } });
-      const { clientSecret } = await res.json();
-      const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, { payment_method: { card } });
-      if (error) return document.getElementById('card-errors').textContent = error.message;
-      finalize('stripe', paymentIntent.id);
-    }
-  };
-
-  async function finalize(method, paymentIntentId = '', paypalOrderId = '') {
-    const name = document.getElementById('name').value;
-    const email = document.getElementById('email').value;
-
-    const res = await fetch('/api/finalize-order', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, paymentMethod: method, paymentIntentId, paypalOrderId })
-    });
-    const data = await res.json();
-    if (data.success) {
-      alert('Payment successful! Order confirmed.');
-      window.location.href = '/';
-    } else {
-      alert('Error: ' + (data.error || 'unknown'));
-    }
-  }
-
+  document.getElementById('clear-all').onclick = clearAll;
   loadCart();
 </script>
 </body>
