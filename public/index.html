@@ -25,183 +25,72 @@
       margin: 0; overflow-x: hidden; 
     }
 
-    /* Navbar (from 2nd code, styled like 1st) */
     .navbar {
       background: #ff6f61 !important;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
       position: sticky;
       top: 0;
       z-index: 1000;
       padding: 1rem 0;
     }
-    .navbar-brand {
-      font-weight: 700;
-      font-size: 1.5rem;
-      color: white !important;
-    }
-    .nav-link {
-      color: white !important;
-      font-weight: 600;
-      font-size: 1.1rem;
-      transition: color 0.3s ease;
-    }
-    .nav-link:hover {
-      color: #ffd166 !important;
-    }
-    .cart-badge {
-      background: white;
-      color: #ff6f61;
-      border-radius: 50%;
-      padding: 2px 6px;
-      font-size: 0.7rem;
-      margin-left: 5px;
-    }
+    .navbar-brand { font-weight: 700; font-size: 1.5rem; color: white !important; }
+    .nav-link { color: white !important; font-weight: 600; font-size: 1.1rem; transition: color 0.3s ease; }
+    .nav-link:hover { color: #ffd166 !important; }
+    .cart-badge { background: white; color: #ff6f61; border-radius: 50%; padding: 2px 8px; font-size: 0.8rem; font-weight: bold; margin-left: 8px; }
 
-    /* Container & Card Grid (styled like 1st code) */
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 1rem;
-    }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 1rem; }
     .card-grid {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 0;
+      gap: 30px;
       max-width: 1200px;
       margin: 0 auto;
       padding: 2rem 0;
-      grid-gap: 30px;
     }
-    @media (max-width: 900px) {
-      .card-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 0.5rem;
-         grid-gap: 30px;
-      }
-    }
-    @media (max-width: 480px) {
-      .card-grid {
-        grid-template-columns: 1fr;
-      }
+    @media (max-width: 900px) { .card-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 480px) { .card-grid { grid-template-columns: 1fr; } }
 
-    }
-
-    /* Card Item (like 1st code) */
     .card-item {
-      background: #fefefe url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 150 150"><path d="M20,75 C20,110 75,130 75,130 C75,130 130,110 130,75 C130,40 75,20 75,20 C75,20 20,40 20,75 Z" fill="none" stroke="%23ff6f61" stroke-width="2" opacity="0.2" /></svg>') repeat;
+      background: #fefefe;
       border-radius: 15px;
       padding: 1rem;
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.08);
       transition: all 0.4s ease;
       text-align: center;
-      max-width: 250px;
-      margin: 0 auto;
+      border: 2px solid #ff6f61;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      min-height: 200px;
-      border: 2px solid #ff6f61;
+      min-height: 380px;
     }
-    .card-item:hover {
-      transform: translateY(-8px);
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
-      border-color: #4ecdc4;
-    }
-    .card-item:nth-child(2) { border-color: #ffd166; }
-    .card-item:nth-child(3) { border-color: #a78bfa; }
-    .card-item:nth-child(4) { border-color: #f472b6; }
-    .card-item:nth-child(5) { border-color: #4ecdc4; }
-    .card-item h5 {
-      font-size: 1.3rem;
-      font-weight: 700;
-      color: #333;
-      margin: 0.5rem 0;
-    }
-    .card-item .icon {
-      font-size: 1.5rem;
-      margin-bottom: 0.5rem;
-    }
-    .card-item img {
-      width: 100%;
-      height: 120px;
-      object-fit: cover;
-      border-radius: 10px;
-      margin: 8px 0;
-    }
-    .card-item .price {
-      font-size: 1.5rem;
-      color: #ff6f61;
-      font-weight: 700;
-      margin: 0.5rem 0;
-    }
+    .card-item:hover { transform: translateY(-8px); box-shadow: 0 10px 20px rgba(0,0,0,0.12); border-color: #4ecdc4; }
+    .card-item img { width: 100%; height: 160px; object-fit: cover; border-radius: 10px; margin: 10px 0; }
+    .card-item h5 { font-size: 1.3rem; font-weight: 700; color: #333; margin: 0.5rem 0; }
+    .card-item .price { font-size: 1.6rem; color: #ff6f61; font-weight: 700; margin: 0.5rem 0; }
     .btn-add {
-      background-color: #ff6f61;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 25px;
-      font-weight: 600;
-      transition: all 0.3s ease;
-      margin-top: auto;
+      background-color: #ff6f61; color: white; border: none; padding: 12px 24px;
+      border-radius: 25px; font-weight: 600; margin-top: auto; transition: all 0.3s ease;
     }
-    .btn-add:hover {
-      background-color: #e55a50;
-      transform: scale(1.05);
-    }
+    .btn-add:hover { background-color: #e55a50; transform: scale(1.05); }
 
-    /* Hero */
     .hero-bg { background-color: #ffffff; position: relative; overflow: hidden; }
     .animate-word { display: inline-block; opacity: 0; transform: translateY(20px); }
-    .btn-primary {
-      background-color: #ff6f61;
-      color: white;
-      border-radius: 25px;
-      padding: 10px 20px;
-      font-weight: 600;
-      transition: all 0.3s ease;
-    }
-    .btn-primary:hover {
-      background-color: #e55a50;
-      transform: scale(1.05);
-    }
+    .btn-primary { background-color: #ff6f61; color: white; border-radius: 25px; padding: 12px 28px; font-weight: 600; transition: all 0.3s ease; }
+    .btn-primary:hover { background-color: #e55a50; transform: scale(1.05); }
     .highlight-text { color: #ff6f61; }
 
-    /* Featured Collections */
     .pricing-card {
-      opacity: 0;
-      transform: scale(0.9);
-      border: 2px solid;
-      border-radius: 15px;
-      padding: 1.2rem;
-      transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
-      position: relative;
-      overflow: hidden;
+      opacity: 0; transform: scale(0.9); border: 2px solid; border-radius: 15px;
+      padding: 1.5rem; transition: all 0.3s ease; background: white;
     }
     .pricing-card:nth-child(1) { border-color: #ff6f61; }
     .pricing-card:nth-child(2) { border-color: #ffd166; }
     .pricing-card:nth-child(3) { border-color: #4ecdc4; }
-    .pricing-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
-      border-color: #ff9a8b;
-    }
-    .pricing-card h4 {
-      color: #333;
-      transition: color 0.3s ease;
-    }
-    .pricing-card:hover h4 { color: #ff6f61; }
-    .pricing-card p { color: #6b7280; }
+    .pricing-card:hover { transform: translateY(-5px); box-shadow: 0 8px 16px rgba(0,0,0,0.15); }
 
-    /* Footer */
     footer {
       background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
-      color: white;
-      padding: 3rem 1rem;
-      text-align: center;
+      color: white; padding: 3rem 1rem; text-align: center;
     }
-    footer p { font-size: 1rem; opacity: 0.9; }
-
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   </style>
 </head>
 <body>
@@ -211,15 +100,16 @@
 <script type="text/babel">
   const { useState, useEffect } = React;
 
-  // === JavaScript from 2nd code (kept exactly) ===
+  // Global cart count update (used by both React and plain JS)
   async function updateCartCount() {
     try {
       const res = await fetch('/api/cart');
       const items = await res.json();
-      const total = items.reduce((s, i) => s + i.quantity, 0);
-      document.getElementById('cart-count').textContent = total;
+      const total = items.reduce((sum, item) => sum + item.quantity, 0);
+      // Update both React state and DOM directly
+      document.getElementById('cart-count')?.replaceChildren(total || 0);
     } catch (e) {
-      document.getElementById('cart-count').textContent = '0';
+      document.getElementById('cart-count')?.replaceChildren('0');
     }
   }
 
@@ -237,13 +127,14 @@
       const res = await fetch('/api/products');
       const products = await res.json();
       const grid = document.getElementById('products-grid');
+      if (!grid) return;
       grid.innerHTML = products.map(p => `
         <div class="card-item">
-          <div class="icon">${p.icon || 'Llama'}</div>
-          <img src="${p.image || 'https://via.placeholder.com/400x300'}" alt="${p.name}">
+          <div style="font-size:3rem;margin-bottom:8px;">${p.icon || 'Llama'}</div>
+          <img src="${p.image || 'https://via.placeholder.com/400x300/fff8f1/ff6f61?text=No+Image'}" alt="${p.name}">
           <h5>${p.name}</h5>
-          <p>${p.desc}</p>
-          <p class="price">$${p.price}</p>
+          <p class="text-gray-600 text-sm">${p.desc}</p>
+          <p class="price">$${Number(p.price).toFixed(2)}</p>
           <button class="btn-add" onclick="addToCart('${p._id}')">Add to Cart</button>
         </div>
       `).join('');
@@ -252,43 +143,38 @@
     }
   }
 
-  // === React Components ===
-function Navbar() {
-  const [cartCount, setCartCount] = useState(0);
+  function Navbar() {
+    const [cartCount, setCartCount] = useState(0);
 
-  useEffect(() => {
-    updateCartCount();
-    const interval = setInterval(updateCartCount, 5000);
-    return () => clearInterval(interval);
-  }, []);
+    useEffect(() => {
+      updateCartCount();
+      const interval = setInterval(updateCartCount, 5000);
+      return () => clearInterval(interval);
+    }, []);
 
-  return (
-    <nav className="navbar">
-      <div className="container flex items-center justify-between">
-        {/* Logo */}
-        <a className="navbar-brand" href="/">Thank Ewe Very Much</a>
-
-        {/* Links */}
-        <ul className="flex space-x-6 items-center">
-          <li><a className="nav-link" href="/">Home</a></li>
-          <li>
-            <a className="nav-link flex items-center" href="/cart.html">
-              Cart
-              <span id="cart-count" className="cart-badge ml-2">{cartCount}</span>
-            </a>
-          </li>
-          <li><a className="nav-link" href="/admin.html">Admin</a></li>
-        </ul>
-      </div>
-    </nav>
-  );
-}
-
+    return (
+      <nav className="navbar">
+        <div className="container flex items-center justify-between mx-auto">
+          <a className="navbar-brand" href="/">Thank Ewe Very Much</a>
+          <ul className="flex space-x-8 items-center">
+            <li><a className="nav-link" href="/">Home</a></li>
+            <li>
+              <a className="nav-link flex items-center" href="/cart.html">
+                Cart
+                <span id="cart-count" className="cart-badge">{cartCount}</span>
+              </a>
+            </li>
+            <li><a className="nav-link" href="/admin.html">Admin</a></li>
+          </ul>
+        </div>
+      </nav>
+    );
+  }
 
   function Hero() {
     useEffect(() => {
-      gsap.to('.animate-word', { opacity: 1, y: 0, stagger: 0.1, duration: 0.5, ease: 'power2.out' });
-      gsap.to('.pricing-card', { opacity: 1, scale: 1, stagger: 0.2, duration: 0.8, ease: 'power2.out', scrollTrigger: { trigger: '#home', start: 'top 80%' } });
+      gsap.to('.animate-word', { opacity: 1, y: 0, stagger: 0.1, duration: 0.6, ease: 'power2.out' });
+      gsap.to('.pricing-card', { opacity: 1, scale: 1, stagger: 0.2, duration: 0.8, ease: 'back.out(1.7)', scrollTrigger: { trigger: '#home', start: 'top 80%' } });
     }, []);
 
     const title = "The Purrfect Way to Express Your Baaa-st Wishes!".split(' ').map((word, i) => (
@@ -298,30 +184,30 @@ function Navbar() {
     return (
       <section id="home" className="hero-bg min-h-screen flex items-center justify-center text-center pt-20">
         <div className="container mx-auto px-4">
-          <h2 className="text-5xl md:text-7xl font-bold text-gray-800 mb-6">{title}</h2>
-          <p className="text-2xl text-gray-600 mb-8">
+          <h2 className="text-5xl md:text-7xl font-bold text-gray-800 mb-8 leading-tight">{title}</h2>
+          <p className="text-2xl text-gray-600 mb-10">
             <span className="highlight-text">Real cards</span> for <span className="highlight-text">real people</span> – birthdays, thank-yous, and special occasions!
           </p>
 
-          <div className="mt-12">
-            <h3 className="text-3xl font-bold text-gray-800 mb-6">Featured Collections</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-              <div className="pricing-card card-shadow text-gray-800">
-                <h4 className="text-xl font-bold">Baaa-rilliant Birthdays</h4>
-                <p>Woolly designs starting at $4.99</p>
+          <div className="mt-16">
+            <h3 className="text-4xl font-bold text-gray-800 mb-8">Featured Collections</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+              <div className="pricing-card">
+                <h4 className="text-2xl font-bold mb-2">Baaa-rilliant Birthdays</h4>
+                <p className="text-lg">Woolly designs starting at $4.99</p>
               </div>
-              <div className="pricing-card card-shadow text-gray-800">
-                <h4 className="text-xl font-bold">Thank Ewe Notes</h4>
-                <p>Heartfelt gratitude with a llama twist</p>
+              <div className="pricing-card">
+                <h4 className="text-2xl font-bold mb-2">Thank Ewe Notes</h4>
+                <p className="text-lg">Heartfelt gratitude with a llama twist</p>
               </div>
-              <div className="pricing-card card-shadow text-gray-800">
-                <h4 className="text-xl font-bold">Custom Llama Love</h4>
-                <p>Personalized cards for any occasion</p>
+              <div className="pricing-card">
+                <h4 className="text-2xl font-bold mb-2">Custom Llama Love</h4>
+                <p className="text-lg">Personalized cards for any occasion</p>
               </div>
             </div>
           </div>
 
-          <a href="#products" className="btn-primary mt-8 inline-block">Shop Now!</a>
+          <a href="#products" className="btn-primary text-xl inline-block mt-12">Shop Now!</a>
         </div>
       </section>
     );
@@ -329,15 +215,15 @@ function Navbar() {
 
   function About() {
     useEffect(() => {
-      gsap.from('#about .container > *', { opacity: 0, y: 50, duration: 1, stagger: 0.2, ease: 'power3.out', scrollTrigger: { trigger: '#about', start: 'top 80%' } });
+      gsap.from('#about > div > *', { opacity: 0, y: 50, duration: 1, stagger: 0.3, ease: 'power3.out', scrollTrigger: { trigger: '#about', start: 'top 80%' } });
     }, []);
 
     return (
-      <section id="about" className="py-16 section-bg text-gray-800">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-4xl font-bold mb-8">About Thank Ewe Very Much</h2>
-          <p className="text-lg text-gray-600 mb-6">
-            At Thank Ewe Very Much, we believe in the power of <span className="highlight-text">real cards</span> to connect real people. Our woolly, llama-inspired designs bring fun and heart to every occasion.
+      <section id="about" className="py-24 bg-gradient-to-b from-white to-[#fff8f1]">
+        <div className="container mx-auto px-6 text-center">
+          <h2 className="text-5xl font-bold mb-8 text-gray-800">About Thank Ewe Very Much</h2>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            At Thank Ewe Very Much, we believe in the power of <span className="highlight-text font-bold">real cards</span> to connect real people. Our woolly, llama-inspired designs bring fun, warmth, and heart to every occasion.
           </p>
         </div>
       </section>
@@ -353,13 +239,14 @@ function Navbar() {
     }, []);
 
     return (
-      <section id="products" className="py-16 section-bg">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-8">
-            <h2 className="text-4xl font-bold">Our Woolly Cards</h2>
+      <section id="products" className="py-24">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-5xl font-bold text-gray-800">Our Woolly Cards</h2>
+            <p className="text-xl text-gray-600 mt-4">Hand-crafted with love, delivered with joy</p>
           </div>
           <div className="card-grid" id="products-grid">
-            {/* Filled by loadProducts() */}
+            {/* Products loaded here */}
           </div>
         </div>
       </section>
@@ -369,9 +256,8 @@ function Navbar() {
   function Footer() {
     return (
       <footer>
-        <p className="text-lg">© 2025 Thank Ewe Very Much. All rights reserved.</p>
-        <p className="text-lg mt-2">Real Cards for Real People! #ThankEweVeryMuch</p>
-        <p className="text-lg mt-2">Follow us on <a href="https://x.com" className="highlight-text">#RealCardsRealPeople</a></p>
+        <p className="text-xl">© 2025 Thank Ewe Very Much. All rights reserved.</p>
+        <p className="text-lg mt-3">Real Cards for Real People! #ThankEweVeryMuch</p>
       </footer>
     );
   }
@@ -392,89 +278,5 @@ function Navbar() {
   root.render(<App />);
 </script>
 
-</body>
-</html>
-
-
-<!--
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Thank Ewe Very Much</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    body{font-family:'Comic Sans MS',cursive;background:linear-gradient(135deg,#f5f7fa 0%,#c3cfe2 100%);}
-    .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;padding:20px;}
-    .card-item{background:#fff;border-radius:15px;padding:20px;text-align:center;box-shadow:0 4px 15px rgba(0,0,0,.1);transition:.3s;}
-    .card-item:hover{transform:translateY(-10px);box-shadow:0 8px 25px rgba(0,0,0,.2);}
-    .price{font-size:1.5rem;color:#e91e63;font-weight:bold;}
-    .icon{font-size:3rem;}
-    .btn-add{background:#ff6b6b;color:#fff;border:none;padding:10px 20px;border-radius:25px;}
-    .btn-add:hover{background:#ff5252;}
-    .navbar{background:#ff6b6b !important;}
-    .cart-badge{background:#fff;color:#ff6b6b;border-radius:50%;padding:2px 6px;font-size:.7rem;}
-  </style>
-</head>
-<body>
-
-<nav class="navbar navbar-expand-lg navbar-dark">
-  <div class="container">
-    <a class="navbar-brand" href="/">Thank Ewe Very Much</a>
-    <div class="collapse navbar-collapse">
-      <ul class="navbar-nav ms-auto">
-        <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
-        <li class="nav-item"><a class="nav-link" href="/cart.html">Cart <span id="cart-count" class="badge cart-badge">0</span></a></li>
-        <li class="nav-item"><a class="nav-link" href="/admin.html">Admin</a></li>
-      </ul>
-    </div>
-  </div>
-</nav>
-
-<div class="text-center py-5 bg-light">
-  <h1 class="display-4">Llama Cards for Every Occasion</h1>
-  <p class="lead">Send love, laughs, and llama joy!</p>
-</div>
-
-<div class="container">
-  <div class="card-grid" id="products-grid"></div>
-</div>
-
-<script>
-  async function updateCartCount() {
-    const res = await fetch('/api/cart');
-    const items = await res.json();
-    const total = items.reduce((s,i)=>s+i.quantity,0);
-    document.getElementById('cart-count').textContent = total;
-  }
-
-  async function loadProducts() {
-    const res = await fetch('/api/products');
-    const products = await res.json();
-    document.getElementById('products-grid').innerHTML = products.map(p=>`
-      <div class="card-item">
-        <div class="icon">${p.icon}</div>
-        <img src="${p.image}" alt="${p.name}" style="width:100%;height:180px;object-fit:cover;border-radius:10px;margin:10px 0;">
-        <h5>${p.name}</h5>
-        <p>${p.desc}</p>
-        <p class="price">$${p.price}</p>
-        <button class="btn-add" onclick="addToCart('${p._id}')">Add to Cart</button>
-      </div>
-    `).join('');
-  }
-
-  async function addToCart(id) {
-    await fetch('/api/cart/add',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({productId:id})
-    });
-    updateCartCount();
-  }
-
-  loadProducts();
-  updateCartCount();
-</script>
 </body>
 </html>
