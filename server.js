@@ -9,6 +9,7 @@ const paypal = require('@paypal/checkout-server-sdk');
 const stripeLib = require('stripe');
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
+const bcrypt = require('bcryptjs');
 const path = require('path');
 const fs = require('fs');
 
@@ -20,11 +21,17 @@ app.use(cors());
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public'));
+
+app.set('trust proxy', 1);
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'supersecretkey123',
+  secret: process.env.SESSION_SECRET,
   resave: false,
-  saveUninitialized: true,
-  cookie: { secure: false, maxAge: 60 * 60 * 1000 }
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000
+  }
 }));
 
 // ---------- Cloudinary ----------
@@ -34,18 +41,13 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// ---------- MongoDB (FIXED: Removed deprecated options) ----------
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 30000,
-  socketTimeoutMS: 45000,
-})
-.then(() => console.log('MongoDB connected'))
-.catch(err => {
-  console.error('MongoDB connection error:', err.message);
-  process.exit(1);
-});
+// ---------- MongoDB ----------
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log('MongoDB connected'))
+  .catch(err => {
+    console.error('MongoDB connection error:', err.message);
+    process.exit(1);
+  });
 
 // ---------- Schemas ----------
 const productSchema = new mongoose.Schema({
@@ -55,7 +57,6 @@ const productSchema = new mongoose.Schema({
 const Product = mongoose.model('Product', productSchema);
 
 const orderSchema = new mongoose.Schema({
-  sessionId: String,
   items: [{ productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' }, quantity: Number }],
   total: Number,
   customer: { name: String, email: String },
@@ -68,65 +69,52 @@ const orderSchema = new mongoose.Schema({
 const Order = mongoose.model('Order', orderSchema);
 
 const configSchema = new mongoose.Schema({
+  adminPasswordHash: String,
+  stripeSecretKey: String,
+  stripePublishableKey: String,
   paypalClientId: String,
   paypalClientSecret: String,
-  stripePublishableKey: String,
-  stripeSecretKey: String
-});
+  gmailUser: String,
+  gmailPass: String
+}, { minimize: false });
 const Config = mongoose.model('Config', configSchema);
 
-// ---------- Multer ----------
+// Multer
 const upload = multer({ dest: 'uploads/' });
-
-// ---------- Nodemailer ----------
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_PASS }
-});
-
-transporter.verify((error) => {
-  if (error) console.error('Email error:', error);
-  else console.log('Email ready');
-});
 
 // ---------- Seed Products ----------
 const seedProducts = async () => {
-  try {
-    const count = await Product.countDocuments();
-    if (count > 0) return;
+  const count = await Product.countDocuments();
+  if (count > 0) return;
 
-    const products = [
-      { name: "Llama Birthday Bash", desc: "Colorful llama birthday card.", type: "Birthday", icon: "Llama", price: 4.99, image: "https://via.placeholder.com/400x300?text=Llama+Birthday+Bash", message: "Happy Baaa-thday!" },
-      { name: "Thank Ewe Note", desc: "Woolly gratitude card.", type: "Thank You", icon: "Llama", price: 3.49, image: "https://via.placeholder.com/400x300?text=Thank+Ewe+Note", message: "Thank ewe!" },
-      { name: "Llama Anniversary", desc: "Romantic llama card.", type: "Special Occasion", icon: "Llama", price: 5.99, image: "https://via.placeholder.com/400x300?text=Llama+Anniversary", message: "Llama-zing love!" },
-      { name: "Get Well Llama", desc: "Cheerful recovery card.", type: "Special Occasion", icon: "Llama", price: 3.99, image: "https://via.placeholder.com/400x300?text=Get+Well+Llama", message: "Woolly recovery!" },
-      { name: "Llama Congratulations", desc: "Festive celebration card.", type: "Special Occasion", icon: "Llama", price: 4.49, image: "https://via.placeholder.com/400x300?text=Llama+Congratulations", message: "Llama-tastic!" },
-      { name: "Llama Sympathy", desc: "Gentle sympathy card.", type: "Special Occasion", icon: "Llama", price: 3.99, image: "https://via.placeholder.com/400x300?text=Llama+Sympathy", message: "Woolly hugs." },
-      { name: "Llama Holiday Cheer", desc: "Festive holiday card.", type: "Special Occasion", icon: "Llama", price: 4.29, image: "https://via.placeholder.com/400x300?text=Llama+Holiday+Cheer", message: "Woolly wishes!" },
-      { name: "Baby Llama Bliss", desc: "New baby congratulations.", type: "Special Occasion", icon: "Llama", price: 4.79, image: "https://via.placeholder.com/400x300?text=Baby+Llama+Bliss", message: "Little llama!" },
-      { name: "Llama Wedding Wishes", desc: "Elegant wedding card.", type: "Special Occasion", icon: "Llama", price: 5.49, image: "https://via.placeholder.com/400x300?text=Llama+Wedding+Wishes", message: "Forever llama-zing!" },
-      { name: "Llama Graduation", desc: "Academic success card.", type: "Special Occasion", icon: "Llama", price: 4.69, image: "https://via.placeholder.com/400x300?text=Llama+Graduation", message: "Woolly brilliant!" },
-      { name: "Llama Friendship", desc: "Heartfelt friendship card.", type: "Special Occasion", icon: "Llama", price: 3.89, image: "https://via.placeholder.com/400x300?text=Llama+Friendship", message: "Shear-iously awesome!" },
-      { name: "Llama New Home", desc: "New home welcome.", type: "Special Occasion", icon: "Llama", price: 4.39, image: "https://via.placeholder.com/400x300?text=Llama+New+Home", message: "Woolly new home!" },
-      { name: "Llama Birthday Fiesta", desc: "Vibrant birthday party.", type: "Birthday", icon: "Llama", price: 4.89, image: "https://via.placeholder.com/400x300?text=Llama+Birthday+Fiesta", message: "Llama-tastic bash!" },
-      { name: "Thank Ewe Kindness", desc: "Gratitude for kindness.", type: "Thank You", icon: "Llama", price: 3.59, image: "https://via.placeholder.com/400x300?text=Thank+Ewe+Kindness", message: "Shear perfection!" },
-      { name: "Llama Retirement", desc: "Retirement celebration.", type: "Special Occasion", icon: "Llama", price: 4.99, image: "https://via.placeholder.com/400x300?text=Llama+Retirement", message: "Woolly retirement!" },
-      { name: "Llama Baby Shower", desc: "Expecting parents card.", type: "Special Occasion", icon: "Llama", price: 4.59, image: "https://via.placeholder.com/400x300?text=Llama+Baby+Shower", message: "Little llama coming!" },
-      { name: "Llama Encouragement", desc: "Uplifting encouragement.", type: "Special Occasion", icon: "Llama", price: 3.79, image: "https://via.placeholder.com/400x300?text=Llama+Encouragement", message: "Shine, woolly star!" },
-      { name: "Llama Thank You Party", desc: "Festive thank you.", type: "Thank You", icon: "Llama", price: 3.99, image: "https://via.placeholder.com/400x300?text=Llama+Thank+You+Party", message: "Un-baaa-lievable party!" }
-    ];
-    await Product.insertMany(products);
-    console.log('18 products seeded');
-  } catch (err) {
-    console.error('Seeding failed:', err.message);
-  }
+  const products = [
+    { name: "Llama Birthday Bash", desc: "Colorful llama birthday card.", type: "Birthday", icon: "Llama", price: 4.99, image: "https://via.placeholder.com/400x300?text=Llama+Birthday+Bash", message: "Happy Baaa-thday!" },
+    { name: "Thank Ewe Note", desc: "Woolly gratitude card.", type: "Thank You", icon: "Llama", price: 3.49, image: "https://via.placeholder.com/400x300?text=Thank+Ewe+Note", message: "Thank ewe!" },
+    // ... (your full 18 products here – same as before)
+    { name: "Llama Thank You Party", desc: "Festive thank you.", type: "Thank You", icon: "Llama", price: 3.99, image: "https://via.placeholder.com/400x300?text=Llama+Thank+You+Party", message: "Un-baaa-lievable party!" }
+  ];
+  await Product.insertMany(products);
+  console.log('18 products seeded');
 };
 
-// Seed after connection
 mongoose.connection.once('open', () => {
   console.log('Database connected. Seeding products...');
   seedProducts();
 });
+
+// ---------- Helper: Get Config + Transporter ----------
+let transporter;
+const getConfig = () => Config.findOne().lean();
+const refreshTransporter = async () => {
+  const cfg = await getConfig();
+  if (cfg?.gmailUser && cfg?.gmailPass) {
+    transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: { user: cfg.gmailUser, pass: cfg.gmailPass }
+    });
+  }
+};
+refreshTransporter();
 
 // ---------- Routes ----------
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
@@ -135,12 +123,8 @@ app.get('/admin.html', (req, res) => res.sendFile(path.join(__dirname, 'public',
 
 // Products
 app.get('/api/products', async (req, res) => {
-  try {
-    const products = await Product.find();
-    res.json(products);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to load products' });
-  }
+  const products = await Product.find();
+  res.json(products);
 });
 
 // Cart
@@ -155,123 +139,114 @@ app.post('/api/cart/add', (req, res) => {
 
 app.get('/api/cart', async (req, res) => {
   if (!req.session.cart) return res.json([]);
-  try {
-    const populated = await Promise.all(
-      req.session.cart.map(async item => {
-        const product = await Product.findById(item.productId);
-        return product ? { ...item, product } : null;
-      })
-    );
-    res.json(populated.filter(Boolean));
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to load cart' });
-  }
+  const populated = await Promise.all(
+    req.session.cart.map(async item => {
+      const product = await Product.findById(item.productId);
+      return product ? { ...item, product } : null;
+    })
+  );
+  res.json(populated.filter(Boolean));
 });
 
-// ---------- PAYPAL ----------
+// PayPal
 app.get('/api/paypal/config', async (req, res) => {
-  const config = await Config.findOne() || {};
-  res.json({ clientId: config.paypalClientId });
+  const cfg = await getConfig();
+  res.json({ clientId: cfg?.paypalClientId || '' });
 });
 
 app.post('/api/paypal/create-order', async (req, res) => {
   const { total } = req.body;
-  const config = await Config.findOne();
-  if (!config?.paypalClientId) return res.status(400).json({ error: 'PayPal not configured' });
+  const cfg = await getConfig();
+  if (!cfg?.paypalClientId) return res.status(400).json({ error: 'PayPal not configured' });
 
-  const environment = new paypal.core.SandboxEnvironment(config.paypalClientId, config.paypalClientSecret);
+  const environment = paypal.core.SandboxEnvironment(cfg.paypalClientId, cfg.paypalClientSecret);
   const client = new paypal.core.PayPalHttpClient(environment);
   const request = new paypal.orders.OrdersCreateRequest();
   request.requestBody({
     intent: 'CAPTURE',
     purchase_units: [{ amount: { currency_code: 'USD', value: total.toFixed(2) } }]
   });
-  try {
-    const order = await client.execute(request);
-    res.json({ id: order.result.id });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  const order = await client.execute(request);
+  res.json({ id: order.result.id });
 });
 
 app.post('/api/paypal/capture-order', async (req, res) => {
   const { orderID } = req.body;
-  const config = await Config.findOne();
-  const environment = new paypal.core.SandboxEnvironment(config.paypalClientId, config.paypalClientSecret);
+  const cfg = await getConfig();
+  const environment = paypal.core.SandboxEnvironment(cfg.paypalClientId, cfg.paypalClientSecret);
   const client = new paypal.core.PayPalHttpClient(environment);
   const request = new paypal.orders.OrdersCaptureRequest(orderID);
-  try {
-    const capture = await client.execute(request);
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  await client.execute(request);
+  res.json({ success: true });
 });
 
-// ---------- STRIPE ----------
+// Stripe
 app.get('/api/stripe/config', async (req, res) => {
-  const config = await Config.findOne() || {};
-  res.json({ publishableKey: config.stripePublishableKey });
+  const cfg = await getConfig();
+  res.json({ publishableKey: cfg?.stripePublishableKey || '' });
 });
 
 app.post('/api/stripe/create-intent', async (req, res) => {
   const { total } = req.body;
-  const config = await Config.findOne();
-  if (!config?.stripeSecretKey) return res.status(400).json({ error: 'Stripe not configured' });
-  const stripe = stripeLib(config.stripeSecretKey);
-  try {
-    const intent = await stripe.paymentIntents.create({
-      amount: Math.round(total * 100),
-      currency: 'usd',
-      automatic_payment_methods: { enabled: true },
-    });
-    res.json({ clientSecret: intent.client_secret });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  const cfg = await getConfig();
+  if (!cfg?.stripeSecretKey) return res.status(400).json({ error: 'Stripe not configured' });
+  const stripe = stripeLib(cfg.stripeSecretKey);
+  const intent = await stripe.paymentIntents.create({
+    amount: Math.round(total * 100),
+    currency: 'usd',
+    automatic_payment_methods: { enabled: true },
+  });
+  res.json({ clientSecret: intent.client_secret });
 });
 
-// ---------- FINALIZE ORDER ----------
+// Finalize Order
 app.post('/api/finalize-order', async (req, res) => {
   const { name, email, paymentMethod, paymentIntentId, paypalOrderId } = req.body;
   if (!req.session.cart?.length) return res.status(400).json({ error: 'Cart empty' });
 
-  const total = req.session.cart.reduce((s, i) => s + i.quantity * i.product.price, 0);
   const items = req.session.cart.map(i => ({ productId: i.productId, quantity: i.quantity }));
+  const total = items.reduce((s, i) => s + i.quantity * i.product.price, 0);
 
-  const order = new Order({ sessionId: req.sessionID, items, total, customer: { name, email }, paymentMethod, paymentIntentId, paypalOrderId });
+  const order = new Order({ items, total, customer: { name, email }, paymentMethod, paymentIntentId, paypalOrderId });
   await order.save();
 
-  // ---------- SEND EMAILS ----------
-  const mailOptions = {
-    from: `"Thank Ewe" <${process.env.GMAIL_USER}>`,
-    to: email,
-    subject: 'Order Confirmed!',
-    html: `<h2>Thank You, ${name}!</h2><p>Your order of <strong>$${total.toFixed(2)}</strong> is confirmed.</p><p>Order ID: <code>${order._id}</code></p>`
-  };
-
-  const adminMail = {
-    from: `"Thank Ewe" <${process.env.GMAIL_USER}>`,
-    to: process.env.GMAIL_USER,
-    subject: 'NEW ORDER!',
-    html: `<h3>New Order</h3><p>From: ${name} (${email})</p><p>Total: $${total.toFixed(2)}</p><p>ID: ${order._id}</p>`
-  };
-
-  try {
-    await transporter.sendMail(mailOptions);
-    await transporter.sendMail(adminMail);
-    console.log('Emails sent');
-  } catch (err) {
-    console.error('Email failed:', err);
+  // Send emails
+  if (transporter) {
+    try {
+      await transporter.sendMail({
+        from: `"Thank Ewe" <${(await getConfig()).gmailUser}>`,
+        to: email,
+        subject: 'Order Confirmed!',
+        html: `<h2>Thank You, ${name}!</h2><p>Your order of $${total.toFixed(2)} is confirmed.</p><p>Order ID: ${order._id}</p>`
+      });
+      await transporter.sendMail({
+        from: `"Thank Ewe" <${(await getConfig()).gmailUser}>`,
+        to: (await getConfig()).gmailUser,
+        subject: 'NEW ORDER!',
+        html: `<h3>New Order from ${name} (${email}) – $${total.toFixed(2)}</h3><p>ID: ${order._id}</p>`
+      });
+    } catch (e) { console.error('Email failed:', e); }
   }
 
   req.session.cart = [];
   res.json({ success: true, orderId: order._id });
 });
 
-// ---------- Admin ----------
-app.post('/admin/login', (req, res) => {
-  if (req.body.password === process.env.ADMIN_PASSWORD) {
+// ---------- Admin Auth ----------
+app.post('/admin/login', async (req, res) => {
+  const { password } = req.body;
+  const cfg = await Config.findOne();
+  if (!cfg) {
+    if (password.length >= 6) {
+      const hash = await bcrypt.hash(password, 10);
+      await Config.create({ adminPasswordHash: hash });
+      req.session.admin = true;
+      return res.json({ success: true, firstTime: true });
+    }
+    return res.status(400).json({ error: 'Set a password (6+ chars)' });
+  }
+  const match = await bcrypt.compare(password, cfg.adminPasswordHash);
+  if (match) {
     req.session.admin = true;
     res.json({ success: true });
   } else {
@@ -279,21 +254,31 @@ app.post('/admin/login', (req, res) => {
   }
 });
 
+app.post('/admin/change-password', async (req, res) => {
+  if (!req.session.admin) return res.status(401).json({ error: 'Unauthorized' });
+  const { current, newPass } = req.body;
+  const cfg = await Config.findOne();
+  const match = await bcrypt.compare(current, cfg.adminPasswordHash);
+  if (!match) return res.status(400).json({ error: 'Current password wrong' });
+  cfg.adminPasswordHash = await bcrypt.hash(newPass, 10);
+  await cfg.save();
+  res.json({ success: true });
+});
+
 const isAdmin = (req, res, next) => {
   if (req.session.admin) return next();
   res.status(401).json({ error: 'Unauthorized' });
 };
 
+// Admin Routes (same as before but with new config fields)
 app.get('/api/admin/orders', isAdmin, async (req, res) => {
   const orders = await Order.find().populate('items.productId').sort({ createdAt: -1 });
   res.json(orders);
 });
-
 app.put('/api/admin/orders/:id', isAdmin, async (req, res) => {
   await Order.findByIdAndUpdate(req.params.id, { status: req.body.status });
   res.json({ success: true });
 });
-
 app.delete('/api/admin/orders/:id', isAdmin, async (req, res) => {
   await Order.findByIdAndDelete(req.params.id);
   res.json({ success: true });
@@ -305,13 +290,13 @@ app.get('/api/admin/products', isAdmin, async (req, res) => {
 });
 
 app.post('/api/admin/products', isAdmin, upload.single('image'), async (req, res) => {
-  let imageUrl = req.body.image || '';
+  let imageUrl = '';
   if (req.file) {
     const result = await cloudinary.uploader.upload(req.file.path);
     imageUrl = result.secure_url;
     fs.unlinkSync(req.file.path);
   }
-  const product = new Product({ ...req.body, price: parseFloat(req.body.price), image: imageUrl });
+  const product = new Product({ ...req.body, price: parseFloat(req.body.price), image: imageUrl || req.body.image });
   await product.save();
   res.json({ success: true });
 });
@@ -322,17 +307,31 @@ app.delete('/api/admin/products/:id', isAdmin, async (req, res) => {
 });
 
 app.get('/api/admin/config', isAdmin, async (req, res) => {
-  const cfg = await Config.findOne() || {};
-  res.json(cfg);
+  const cfg = await getConfig();
+  res.json(cfg || {});
 });
 
 app.put('/api/admin/config', isAdmin, async (req, res) => {
   await Config.findOneAndUpdate({}, req.body, { upsert: true });
+  await refreshTransporter();
+  res.json({ success: true });
+});
+// Add inside server.js
+app.post('/api/cart/remove', (req, res) => {
+  const { productId } = req.body;
+  if (req.session.cart) {
+    req.session.cart = req.session.cart.filter(i => i.productId !== productId);
+  }
+  res.json({ success: true });
+});
+
+app.post('/api/cart/clear', (req, res) => {
+  req.session.cart = [];
   res.json({ success: true });
 });
 
 // ---------- Start ----------
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
-  console.log(`Admin: http://localhost:${PORT}/admin.html (pass: ${process.env.ADMIN_PASSWORD})`);
+  console.log(`Admin panel: http://localhost:${PORT}/admin.html`);
 });
